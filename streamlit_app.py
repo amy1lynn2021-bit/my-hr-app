@@ -1,5 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
+import tempfile
+import os
 import time
 
 # 1. Page Configuration (Must be first!)
@@ -31,27 +33,38 @@ st.info("Record a 10-20 second clip of yourself speaking to get instant feedback
 # On mobile, clicking this allows the user to 'Take Video' immediately.
 video_file = st.file_uploader("Upload or Record Video", type=['mp4', 'mov', 'avi'])
 
-if video_file:
-    st.video(video_file)
-    
-    # Optional selection for focus
-    focus = st.selectbox("What should I look for?", ["General Feedback", "Confidence", "Reducing Filler Words"])
+video_file = st.file_uploader("Upload or Record Video", type=['mp4', 'mov'])
 
-    if st.button("Get Coaching Feedback"):
-        with st.status("Coach is watching your video...", expanded=True) as status:
-            st.write("Uploading to AI brain...")
-            user_video = genai.upload_file(video_file)
-            
-            # Polling to check if the video is ready
+if video_file is not None:
+    # 1. Save to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp_file:
+        tmp_file.write(video_file.read())
+        temp_path = tmp_file.name
+
+    try:
+        # 2. Upload to Google
+        st.info("Sending video to Gemini...")
+        user_video = genai.upload_file(path=temp_path)
+        
+        # 3. THE WAIT LOOP: Check status until it's ACTIVE
+        with st.spinner("AI is analyzing the video frames..."):
             while user_video.state.name == "PROCESSING":
-                time.sleep(2)
+                time.sleep(3) # Check every 3 seconds
                 user_video = genai.get_file(user_video.name)
             
-            st.write("Analyzing your communication style...")
-            prompt = f"Please analyze this video for {focus}. Provide a structured critique."
-            response = model.generate_content([user_video, prompt])
-            
-            status.update(label="Analysis Complete!", state="complete")
-        
-        st.subheader("📊 Coach's Report")
-        st.markdown(response.text)
+            if user_video.state.name == "FAILED":
+                st.error("Video processing failed on Google's side.")
+                st.stop()
+
+        st.success("Video ready for coaching!")
+
+        # 4. Now you can safely call generate_content
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content([user_video, "Analyze this video for me."])
+        st.write(response.text)
+
+    finally:
+        # Clean up the temp file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+  
