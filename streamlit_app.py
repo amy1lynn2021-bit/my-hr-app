@@ -3,7 +3,7 @@ import google.generativeai as genai
 from PIL import Image
 
 # 1. Setup the AI
-genai.configure(api_key="YOUR_GOOGLE_API_KEY")
+genai.configure(api_key="AIzaSyAsYBpqydoFBF6IT-IaRsWdGK-JlyVuw5k")
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.title("📸 My Free AI Scout")
