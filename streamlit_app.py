@@ -1,3 +1,7 @@
+import streamlit as st
+import google.generativeai as genai
+import time
+
 st.set_page_config(page_title="CoachAI", page_icon="🎤")
 st.markdown("""
     <style>
@@ -5,10 +9,6 @@ st.markdown("""
     stButton>button { width: 100%; border-radius: 20px; background-color: #4CAF50; color: white; }
     </style>
     """, unsafe_allow_html=True)
-
-import streamlit as st
-import google.generativeai as genai
-import time
 
 # 1. Securely get the API Key from Streamlit Secrets
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
