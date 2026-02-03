@@ -3,7 +3,7 @@ import google.generativeai as genai
 import time
 
 # 1. Securely get the API Key from Streamlit Secrets
-genai.configure(api_key=st.secrets["AIzaSyAsYBpqydoFBF6IT-IaRsWdGK-JlyVuw5k"])
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.title("📸 AI Vision & Video Bot")
